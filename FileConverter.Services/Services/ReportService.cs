@@ -94,45 +94,41 @@ namespace FileConverter.Services.Services
                         return content;
                     }
 
-                    var tableData = ReadTables(workSheet);
-                    content = GetFirstTablesContent(tableData);
+                    var pastYear = DateTime.Now.Year - 2;
+                    var pastYearRow = FindRowWithYear(workSheet, pastYear);
+                    var currentYearRow = FindRowWithYear(workSheet, DateTime.Now.Year);
+
+                    if (pastYearRow != null && currentYearRow != null)
+                    {
+                        content = ReadTables(workSheet, pastYearRow.Value, currentYearRow.Value);
+                    }
                 }
             }
 
             return content;
         }
 
-        private static string GetFirstTablesContent(string tableData)
+        private static int? FindRowWithYear(IXLWorksheet worksheet, int year)
         {
-            using (var reader = new StringReader(tableData))
+            for (var row = 1; row <= worksheet.LastRowUsed().RowNumber(); row++)
             {
-                var extractedData = new StringBuilder();
-
-                for (var i = 1; i <= Int32.MaxValue; i++)
+                var cell = worksheet.Cell(row, "B");
+                int cellYear;
+                if (int.TryParse(cell.Value.ToString(), out cellYear) && cellYear == year)
                 {
-                    var line = reader.ReadLine();
-                    if (i >= StartIndexOfTable && i < EndIndexOfTable && line != null)
-                    {
-                        extractedData.AppendLine(line);
-
-                        if (i == EndIndexOfTable - 1)
-                        {
-                            break;
-                        }
-                    }
+                    return row;
                 }
-
-                return extractedData.ToString();
             }
+            return null;
         }
 
-        private static string ReadTables(IXLWorksheet worksheet)
+        private static string ReadTables(IXLWorksheet worksheet, int endRow, int startRow)
         {
             using (var sw = new StringWriter())
             {
-                foreach (var row in worksheet.RowsUsed())
+                for (var row = startRow; row < endRow; row++)
                 {
-                    foreach (var cell in row.Cells())
+                    foreach (var cell in worksheet.Row(row).Cells())
                     {
                         sw.Write(cell.Value);
                         sw.Write(" ");
