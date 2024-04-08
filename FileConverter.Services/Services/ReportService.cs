@@ -10,9 +10,6 @@ namespace FileConverter.Services.Services
     {
         private readonly HttpClient _client;
 
-        private const int StartIndexOfTable = 2;
-        private const int EndIndexOfTable = 30;
-
         public ReportService(IHttpClientFactory httpClientFactory)
         {
             _client = httpClientFactory.CreateClient(ClientKeywords.Title);
